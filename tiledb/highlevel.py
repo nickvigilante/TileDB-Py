@@ -1,6 +1,6 @@
 import json
 import warnings
-from typing import Callable, Optional
+from typing import Callable, List, Optional, Tuple, Union
 
 import numpy as np
 
@@ -10,7 +10,15 @@ import tiledb.libtiledb as lt
 from .dataframe_ import create_dim
 
 
-def open(uri, mode="r", key=None, attr=None, config=None, timestamp=None, ctx=None):
+def open(
+    uri: str,
+    mode: str = "r",
+    key: Optional[str] = None,
+    attr: Optional[str] = None,
+    config: Optional[dict] = None,
+    timestamp: Optional[Union[int, Tuple[int, int]]] = None,
+    ctx: Optional["tiledb.Ctx"] = None,
+) -> "tiledb.Array":
     """
     Open a TileDB array at the given URI
 
@@ -34,7 +42,7 @@ def open(uri, mode="r", key=None, attr=None, config=None, timestamp=None, ctx=No
     )
 
 
-def save(uri, array, **kwargs):
+def save(uri: str, array, **kwargs) -> "tiledb.DenseArray":
     """
     Save array-like object at the given URI.
 
@@ -47,7 +55,15 @@ def save(uri, array, **kwargs):
     return from_numpy(uri, array, **kwargs)
 
 
-def empty_like(uri, arr, config=None, key=None, tile=None, ctx=None, dtype=None):
+def empty_like(
+    uri: str,
+    arr,
+    config: Optional[dict] = None,
+    key: Optional[str] = None,
+    tile=None,
+    ctx: Optional["tiledb.Ctx"] = None,
+    dtype=None,
+) -> "tiledb.DenseArray":
     """
     Create and return an empty, writeable DenseArray with schema based on
     a NumPy-array like object.
@@ -72,7 +88,13 @@ def empty_like(uri, arr, config=None, key=None, tile=None, ctx=None, dtype=None)
     return tiledb.DenseArray(uri, mode="w", key=key, ctx=ctx)
 
 
-def from_numpy(uri, array, config=None, ctx=None, **kwargs):
+def from_numpy(
+    uri: str,
+    array: "np.ndarray",
+    config: Optional[dict] = None,
+    ctx: Optional["tiledb.Ctx"] = None,
+    **kwargs,
+) -> "tiledb.DenseArray":
     """
     Write a NumPy array into a TileDB DenseArray,
     returning a readonly DenseArray instance.
@@ -150,7 +172,12 @@ def from_numpy(uri, array, config=None, ctx=None, **kwargs):
     return tiledb.DenseArray(uri, mode="r", ctx=ctx)
 
 
-def array_exists(uri, isdense=False, issparse=False, ctx=None):
+def array_exists(
+    uri: str,
+    isdense: bool = False,
+    issparse: bool = False,
+    ctx: Optional["tiledb.Ctx"] = None,
+) -> bool:
     """
     Check if arrays exists and is open-able at the given URI
 
@@ -183,7 +210,11 @@ def array_exists(uri, isdense=False, issparse=False, ctx=None):
             raise
 
 
-def array_fragments(uri, include_mbrs=False, ctx=None):
+def array_fragments(
+    uri: str,
+    include_mbrs: bool = False,
+    ctx: Optional["tiledb.Ctx"] = None,
+) -> "tiledb.FragmentInfoList":
     """
     Creates a `FragmentInfoList` object, which is an ordered list of `FragmentInfo`
     objects, representing all fragments in the array at the given URI.
@@ -208,7 +239,13 @@ def array_fragments(uri, include_mbrs=False, ctx=None):
     return tiledb.FragmentInfoList(uri, include_mbrs, ctx)
 
 
-def consolidate(uri, config=None, ctx=None, fragment_uris=None, timestamp=None):
+def consolidate(
+    uri: str,
+    config: Optional["tiledb.Config"] = None,
+    ctx: Optional["tiledb.Ctx"] = None,
+    fragment_uris: Optional[List[str]] = None,
+    timestamp: Optional[Tuple[int, int]] = None,
+) -> str:
     """Consolidates TileDB array fragments for improved read performance
 
     :param str uri: URI to the TileDB Array
@@ -271,7 +308,12 @@ def consolidate(uri, config=None, ctx=None, fragment_uris=None, timestamp=None):
         return lt.Array._consolidate(uri, ctx, config)
 
 
-def vacuum(uri, config=None, ctx=None, timestamp=None):
+def vacuum(
+    uri: str,
+    config: Optional["tiledb.Config"] = None,
+    ctx: Optional["tiledb.Ctx"] = None,
+    timestamp: Optional[Tuple[int, int]] = None,
+) -> None:
     """
     Vacuum underlying array fragments after consolidation.
 
@@ -324,7 +366,7 @@ def vacuum(uri, config=None, ctx=None, timestamp=None):
             DeprecationWarning,
         )
 
-        if not isinstance(timestamp, tuple) and len(timestamp) != 2:
+        if not isinstance(timestamp, tuple) or len(timestamp) != 2:
             raise TypeError("'timestamp' argument expects tuple(start: int, end: int)")
 
         if timestamp[0] is not None:
@@ -335,7 +377,7 @@ def vacuum(uri, config=None, ctx=None, timestamp=None):
     lt.Array._vacuum(ctx, uri, config)
 
 
-def schema_like(*args, shape=None, dtype=None, ctx=None, **kwargs):
+def schema_like(*args, shape=None, dtype=None, ctx: Optional["tiledb.Ctx"] = None, **kwargs) -> "tiledb.ArraySchema":
     """
     Return an ArraySchema corresponding to a NumPy-like object or
     `shape` and `dtype` kwargs. Users are encouraged to pass 'tile'
@@ -394,7 +436,7 @@ def schema_like(*args, shape=None, dtype=None, ctx=None, **kwargs):
     return schema
 
 
-def as_built(return_json_string=False):
+def as_built(return_json_string: bool = False) -> Union[dict, str]:
     """
     Dumps the TileDB build configuration to a dictionary or string.
 
