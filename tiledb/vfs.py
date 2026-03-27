@@ -538,7 +538,7 @@ class FileIO(io.RawIOBase):
         nbytes_left = self._nbytes - self._offset
         nbytes = nbytes_left if size > nbytes_left else size
         if nbytes == 0:
-            return None
+            return 0
 
         buff_temp = self._fh._read(self._offset, nbytes)
         self._offset += nbytes
