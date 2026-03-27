@@ -145,7 +145,7 @@ class Domain(CtxMixin, lt.Domain):
         :raises TypeError: floating point (inexact) domain
 
         """
-        if not np.issubdtype(self.dtype, self.integer):
+        if not np.issubdtype(self.dtype, np.integer):
             raise TypeError("size valid only for integer domains")
         return np.prod(self.shape)
 
